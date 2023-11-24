@@ -42,25 +42,37 @@ idx = torch.LongTensor(idx).to(device)
 
 ############## Task 8
 
-model = GNN(1, hidden_dim, output_dim, neighbor_aggr, readout, dropout).to(device)
-print(model(X, adj, idx))
-
-model2 = GNN(1, hidden_dim, output_dim, neighbor_aggr, "sum", dropout).to(device)
-print(model2(X, adj, idx))
+print("="*20)
+print("Task 8")
+for neighbor_aggr, readout in [("sum", "sum"), ("mean", "mean"), ("mean", "sum"), ("sum", "mean")]:
+    print("neighbor_aggr: {}, readout: {}".format(neighbor_aggr, readout))
+    model = GNN(1, hidden_dim, output_dim, neighbor_aggr, readout, dropout).to(device)
+    print(model(X, adj, idx))
+    print()
+print("="*20)
 ############## Task 9
-G1 = nx.cycle_graph(3) + nx.cycle_graph(3)
+G1 = nx.union(nx.cycle_graph(3), nx.cycle_graph(3), rename=('G1-', 'G2-'))
 G2 = nx.cycle_graph(6)
 ############## Task 10
-        
-##################
-# your code here #
-##################
+Gs = [G1, G2]
+
+adj = sp.block_diag([nx.adjacency_matrix(G) for G in Gs])
+
+X = np.ones((adj.shape[0], 1))
+
+idx = np.repeat(np.arange(len(Gs)), [G.number_of_nodes() for G in Gs])
+
+
+adj = sparse_mx_to_torch_sparse_tensor(adj).to(device)
+X = torch.FloatTensor(X).to(device)
+idx = torch.LongTensor(idx).to(device)
 
 
 
 
 ############## Task 11
-        
-##################
-# your code here #
-##################
+print("="*20)
+print("Task 11")
+model = GNN(1, hidden_dim, output_dim, neighbor_aggr="sum", readout="sum", dropout=dropout).to(device)
+print(model(X, adj, idx))
+print("="*20)
